@@ -1,3 +1,6 @@
+import subprocess
+subprocess.run(["apt-get", "install", "-y", "ffmpeg"], capture_output=True)
+import yt_dlp
 import yt_dlp
 import time
 import os
