@@ -8,7 +8,7 @@ from telegram.ext import (
 )
 
 TOKEN = os.getenv("8658938325:AAHlU37sQLk6B4nF-t8wlX-MQyYUcvjpdVk")
-ADMIN_ID = int(os.getenv("5442939614"))
+ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
 # === TILLAR ===
 LANGS = {
