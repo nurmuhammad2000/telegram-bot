@@ -7,7 +7,7 @@ from telegram.ext import (
     CallbackQueryHandler, ContextTypes, filters
 )
 
-TOKEN = os.getenv("8658938325:AAEp1EhEA70aQJjWHdmX5MnmAwLMS4M89mo")
+TOKEN = os.getenv("8658938325:AAHlU37sQLk6B4nF-t8wlX-MQyYUcvjpdVk")
 ADMIN_ID = int(os.getenv("5442939614"))
 
 # === TILLAR ===
