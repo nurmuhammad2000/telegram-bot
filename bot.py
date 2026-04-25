@@ -1,6 +1,6 @@
 import subprocess
 subprocess.run(["apt-get", "install", "-y", "ffmpeg"], capture_output=True)
-import yt_dlp
+
 import yt_dlp
 import time
 import os
@@ -20,7 +20,7 @@ LANGS = {
         "choose": "📥 Nima yuklamoqchisiz?",
         "video": "🎬 Video (MP4)",
         "audio": "🎵 Audio (MP3)",
-        "downloading": "⏳",
+        "downloading": "⏳ Yuklanmoqda...",
         "done_video": "✅ Video tayyor!",
         "done_audio": "✅ Audio tayyor!",
         "error": "❌ Yuklab bo'lmadi. Link to'g'ri ekanligini tekshiring.",
@@ -38,7 +38,7 @@ LANGS = {
         "choose": "📥 Что хотите скачать?",
         "video": "🎬 Видео (MP4)",
         "audio": "🎵 Аудио (MP3)",
-        "downloading": "⏳",
+        "downloading": "⏳ Загружается...",
         "done_video": "✅ Видео готово!",
         "done_audio": "✅ Аудио готово!",
         "error": "❌ Не удалось скачать. Проверьте ссылку.",
@@ -56,7 +56,7 @@ LANGS = {
         "choose": "📥 What do you want to download?",
         "video": "🎬 Video (MP4)",
         "audio": "🎵 Audio (MP3)",
-        "downloading": "⏳",
+        "downloading": "⏳ Downloading...",
         "done_video": "✅ Video ready!",
         "done_audio": "✅ Audio ready!",
         "error": "❌ Failed to download. Please check the link.",
@@ -72,10 +72,10 @@ LANGS = {
 }
 
 # === MA'LUMOTLAR ===
-user_langs = {}      # {user_id: "uz"/"ru"/"en"}
-user_ids = set()     # barcha foydalanuvchilar
-total_downloads = 0  # jami yuklab olinganlar
-pending_urls = {}    # {user_id: url}
+user_langs = {}
+user_ids = set()
+total_downloads = 0
+pending_urls = {}
 
 def get_lang(user_id):
     return user_langs.get(user_id, "uz")
@@ -141,7 +141,6 @@ async def broadcast_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === LINK QABUL QILISH ===
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global total_downloads
     user_id = update.message.from_user.id
     user_ids.add(user_id)
     url = update.message.text.strip()
@@ -190,15 +189,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if is_audio:
         ydl_opts = {
-            "format": "bestaudio/best",
+            "format": "m4a/bestaudio/best",
             "outtmpl": file_name + ".%(ext)s",
-            "postprocessors": [{
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            }],
         }
-        out_file = file_name + ".mp3"
+        out_file = file_name + ".m4a"
     else:
         ydl_opts = {
             "format": "mp4/best",
@@ -208,7 +202,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            info = ydl.extract_info(url, download=True)
+            # Haqiqiy fayl nomini topamiz
+            if is_audio:
+                ext = info.get("ext", "m4a")
+                out_file = file_name + "." + ext
 
         await query.delete_message()
 
@@ -237,9 +235,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=t(user_id, "error")
         )
     finally:
-        if os.path.exists(out_file):
-            os.remove(out_file)
-
+        for ext in ["mp4", "m4a", "webm", "mp3"]:
+            f = file_name + "." + ext
+            if os.path.exists(f):
+                os.remove(f)
 
 # === ISHGA TUSHIRISH ===
 app = ApplicationBuilder().token(TOKEN).build()
